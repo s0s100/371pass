@@ -21,8 +21,7 @@
 class Category {
 private:
 	std::string name;
-	std::set<Item> items;
-	// std::vector<Item> items;
+	std::vector<Item> items;
 
 public:
 	Category();
@@ -36,7 +35,7 @@ public:
 
 	Item& newItem(const std::string& itemIdent);
 	bool addItem(const Item& newItem);
-	Item getItem(const std::string& itemIdent) const;
+	Item& getItem(const std::string& itemIdent);
 	bool deleteItem(const std::string& itemIdent);
 	bool megreItems(const Category& mergeCategory);//
 

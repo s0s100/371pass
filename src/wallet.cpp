@@ -41,13 +41,7 @@ bool Wallet::empty() {
 //  returned. Throw a std::runtime_error if the Category object cannot be
 //  inserted into the container.
 Category& Wallet::newCategory(const std::string& categoryIdent) {
-	/*for (auto& it : categories) {
-		if (it.getIdent() == categoryIdent) {
-			return *it;
-		}
-	}*/
-
-	// std::set<Category>::iterator i;
+	// Check if such element exist
 	std::vector<Category>::iterator it;
 	for (it = categories.begin(); it != categories.end()
 		&& !(it->getIdent() == categoryIdent); it++);
@@ -56,21 +50,10 @@ Category& Wallet::newCategory(const std::string& categoryIdent) {
 		return *it;
 	}
 
-	/*auto& it = categories.find(categoryIdent);
-	if (it != categories.end()) {
-		return *it;
-	}*/
-
-	// Not found such an identifier, create new category
-	/*Category* category = new Category(categoryIdent);
-	if (!categories.insert(*category).second) {
-		throw std::runtime_error("unable to add a category");
-	}*/
-
+	// If not, create an object and return it
 	Category* category = new Category(categoryIdent);
 	categories.push_back(*category);
-
-	return *category;
+	return getCategory(categoryIdent);
 }
 
 
@@ -89,10 +72,7 @@ bool Wallet ::addCategory(const Category& newCategory) {
 		}
 	}
 
-	// Category is added and true is returned
-	/*if (!categories.insert(newCategory).second) {
-		throw std::runtime_error("unable to add a category to the set");
-	}*/
+	// If not, push a new element and return true
 	categories.push_back(newCategory);
 	return true;
 }
@@ -101,17 +81,6 @@ bool Wallet ::addCategory(const Category& newCategory) {
 //  identifier and returns the Category. If no Category exists, throw an
 //  appropriate exception.
 Category& Wallet::getCategory(const std::string& categoryIdent) {
-
-	/*for (auto it : categories) {
-		if (it.getIdent() == categoryIdent) {
-			return *(&it);
-		}
-	}*/
-
-	/*if (it != categories.end()) {
-		return *it;
-	}*/
-
 	std::vector<Category>::iterator it;
 	for (it = categories.begin(); it != categories.end()
 		&& !(it->getIdent() == categoryIdent); it++);
@@ -129,15 +98,6 @@ Category& Wallet::getCategory(const std::string& categoryIdent) {
 //  identifier, and deletes it from the container, and returns true if the
 //  Category was deleted. If no Category exists, throw an appropriate exception.
 bool Wallet::deleteCategory(const std::string& categoryIdent ) {
-	/*std::vector<Category>::iterator it;
-	for (auto& it : categories) {
-		if (it.getIdent() == categoryIdent) {
-			categories.erase(it);
-			
-			return true;
-		}
-	}*/
-
 	for (unsigned int i = 0; i < categories.size(); i++) {
 		if (categories.at(i).getIdent() == categoryIdent) {
 			categories.erase(categories.begin() + i);

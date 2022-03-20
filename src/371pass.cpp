@@ -52,10 +52,7 @@ int App::run(int argc, char *argv[]) {
             entryName = args["entry"].as<std::string>();
             std::pair<std::string, std::string> splitted = stringSplit(entryName, ",");
 
-            // It seems that insert puts a copy of an object to the set :(
-            Category category = wallet.newCategory(categoryName);
-            Item item = category.newItem(itemName);
-            item.addEntry(splitted.first, splitted.second);
+            // Update the wallet and save it back to JSON
 
             wallet.save(db);
         }

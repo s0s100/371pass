@@ -36,12 +36,12 @@ bool Item::empty() const {
 // Function, setIdent, that takes one parameter, a string for a new
 //  Item identifier, and updates the member variable. It returns nothing.
 void Item::setIdent(const std::string& newIdent) {
-	this->name = newIdent;
+	name = newIdent;
 }
 
 // Function, getIdent, that returns the identifier for the Item.
 std::string Item::getIdent() const{
-	return this->name;
+	return name;
 }
 
 // Function, addEntry, that takes two parameters, an entry
@@ -95,13 +95,13 @@ bool Item::deleteEntry(const std::string& key) {
 
 // Function that merges two items with the same identifier
 bool Item::mergeEntries(const Item& mergeItem) {
-	if (this->getIdent() != mergeItem.getIdent()) {
+	if (getIdent() != mergeItem.getIdent()) {
 		return false;
 	}
 
 	// Add every entry from the item to be merged
 	for (auto& it : mergeItem.data) {
-		this->addEntry(it);
+		addEntry(it);
 	}
 	return true;
 }
@@ -147,11 +147,11 @@ bool operator<(const Item& lhs, const Item& rhs) {
 //  std::string of the JSON representation of the data in the Item.
 std::string Item::str() const {
 	std::stringstream ss;
-	ss << "    \"" << this->getIdent() <<  "\":  {" << std::endl;
+	ss << "    \"" << getIdent() <<  "\":  {" << std::endl;
 
 	// Comma at the end of each line
 	unsigned int i = 1;
-	for (auto& it : this->data) {
+	for (auto& it : data) {
 		ss << "      \"" << it.first << "\":  \""
 			<< it.second << "\"";
 		if (i++ != data.size()) {

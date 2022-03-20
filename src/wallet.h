@@ -32,7 +32,6 @@ public:
 
 	Category& newCategory(const std::string& categoryIdent);
 	bool addCategory(const Category& newCategory);
-	//Category& getCategory(const std::string& categoryIdent) const;
 	Category& getCategory(const std::string& categoryIdent);
 	bool deleteCategory(const std::string& categoryIdent);
 

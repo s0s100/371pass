@@ -43,7 +43,7 @@ std::string Category::getIdent() const {
 // Function, setIdent, that takes one parameter, a string for a new
 //  Category identifier, and updates the member variable. It returns nothing.
 void Category::getIdent(const std::string& newIdent) {
-	this->name = newIdent;
+	name = newIdent;
 }
 
 // Function, newItem, that takes one parameter, an Item identifier,
@@ -52,19 +52,19 @@ void Category::getIdent(const std::string& newIdent) {
 //  Throw a std::runtime_error if the Item object cannot be inserted into the
 //  container for whatever reason.
 Item& Category::newItem(const std::string& itemIdent) {
-	for (auto it : items) {
-		if (it.getIdent() == itemIdent) {
-			return it;
-		}
+	// Check if such element exist
+	std::vector<Item>::iterator it;
+	for (it = items.begin(); it != items.end()
+		&& !(it->getIdent() == itemIdent); it++);
+
+	if (it != items.end()) {
+		return *it;
 	}
 
-	// Not found such an identifier, create new item
-	Item* item = new Item(itemIdent);
-	if (!items.insert(*item).second) {
-		throw std::runtime_error("unable to add an item");
-	}
-
-	return *item;
+	// If not, create an object and return it
+	Item item = Item(itemIdent);
+	items.push_back(item);
+	return getItem(itemIdent);
 }
 
 // Function, addItem, that takes one parameter, an Item object,
@@ -80,22 +80,22 @@ bool Category::addItem(const Item& newItem) {
 			return false;
 		}
 	}
-	
-	// Item is added and true is returned
-	if (!items.insert(newItem).second) {
-		throw std::runtime_error("unable to add an item to the set");
-	}
+
+	// If not, push a new element and return true
+	items.push_back(newItem);
 	return true;
 }
 
 // Function, getItem, that takes one parameter, an Item
 //  identifier (a string) and returns the Item as a reference. If no Item
 //  exists, throw an appropriate exception.
-Item Category::getItem(const std::string& itemIdent) const {
-	for (auto &it : items) {
-		if (it.getIdent() == itemIdent) {
-			return it;
-		}
+Item& Category::getItem(const std::string& itemIdent) {
+	std::vector<Item>::iterator it;
+	for (it = items.begin(); it != items.end()
+		&& !(it->getIdent() == itemIdent); it++);
+
+	if (it != items.end()) {
+		return *it;
 	}
 
 	throw std::invalid_argument("item with such a name was not found to get");
@@ -105,12 +105,13 @@ Item Category::getItem(const std::string& itemIdent) const {
 //  identifier (a string), deletes it from the container, and returns true if
 //  the Item was deleted. If no Item exists, throw an appropriate exception.
 bool Category::deleteItem(const std::string& itemIdent) {
-	for (Item item : items) {
-		if (item.getIdent() == itemIdent) {
-			items.erase(item);
+	for (unsigned int i = 0; i < items.size(); i++) {
+		if (items.at(i).getIdent() == itemIdent) {
+			items.erase(items.begin() + i);
 			return true;
 		}
 	}
+
 	throw std::invalid_argument("item with such a name was not found to delete");
 	return false;
 }
@@ -118,15 +119,16 @@ bool Category::deleteItem(const std::string& itemIdent) {
 // Allows to merge two categories with the same name
 bool Category::megreItems(const Category& mergeCategory)
 {
-	if (this->getIdent() != mergeCategory.getIdent()) {
+	// First check the name
+	if (getIdent() != mergeCategory.getIdent()) {
 		return false;
 	}
-
-	// Add every entry from the item to be merged
+	
+	// Parse every element and add it to the category
 	for (Item item : mergeCategory.items) {
-		// Check if such entry exist?
-		this->items.insert(item);
+		addItem(item);
 	}
+
 	return true;
 }
 
@@ -140,7 +142,8 @@ bool operator==(const Category& lhs, const Category& rhs) {
 
 	// Check every item in the class
 	for (Item item : lhs.items) {
-		if (rhs.items.find(item) == rhs.items.end()) {
+		if (std::find(rhs.items.begin(), rhs.items.end(),
+			item) != rhs.items.end()) {
 			return false;
 		}
 	}
@@ -160,10 +163,10 @@ bool operator<(const Category& lhs, const Category& rhs) {
 //  std::string of the JSON representation of the data in the Category.
 std::string Category::str() const {
 	std::stringstream ss;
-	ss << "  \"" << this->getIdent() << "\": {" << std::endl;
+	ss << "  \"" << getIdent() << "\": {" << std::endl;
 
 	unsigned int i = 1;
-	for (Item item : this->items) {
+	for (Item item : items) {
 		ss << item.str();
 
 		if (i++ != items.size()) {
