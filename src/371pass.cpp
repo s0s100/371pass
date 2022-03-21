@@ -37,7 +37,9 @@ int App::run(int argc, char *argv[]) {
     }*/
 
     // Just to be sure show the wallet object
-    // std::cout << getJSON(wallet);
+    std::cout << " --- Provided database --- " << std::endl;
+    std::cout << getJSON(wallet) << std::endl;
+    std::cout << " --- Result: --- " << std::endl;
 
     const Action a = parseActionArgument(args);
     switch (a) {
@@ -57,6 +59,13 @@ int App::run(int argc, char *argv[]) {
             }
 
             // Update the wallet and save it back to JSON
+            Category& category = wallet.newCategory(categoryName);
+            Item& item = category.newItem(itemName);
+            if (!item.addEntry(splitted)) {
+                throw std::invalid_argument("Such entry already exists");
+                return 1;
+            }
+
             wallet.save(db);
         }
         else {
@@ -68,59 +77,60 @@ int App::run(int argc, char *argv[]) {
     }
         
     case Action::READ: {
+        bool countCheck = args.count("category") != 0;
+        bool itemCheck = args.count("item") != 0;
+        bool entryCheck = args.count("entry") != 0;
+
         // First check if category exists
-        if (args.count("category") != 0) {
-            std::string categoryName = args["category"].as<std::string>();
+        std::string result;
+        if (countCheck) {
+                std::string categoryName = args["category"].as<std::string>();
 
             // Then chech if item exists
-            if (args.count("item") != 0) {
+            if (itemCheck) {
                 std::string itemName = args["item"].as<std::string>();
 
                 // Entry check as well
-                if (args.count("entry") != 0) {
+                if (entryCheck) {
                     std::string entryName = args["entry"].as<std::string>();
 
                     // Print entry
-                    std::string result = getJSON(wallet, categoryName,
+                    result = getJSON(wallet, categoryName,
                         itemName, entryName);
-
-                    if (result == "") {
-                        return 1;
-                    }
-
-                    std::cout << result;
                 }
                 else {
                     // Print item
-                    std::string result = getJSON(wallet, categoryName,
+                    result = getJSON(wallet, categoryName,
                         itemName);
-
-                    if (result == "") {
-                        return 1;
-                    }
-
-                    std::cout << result;
                 }
             }
             else {
                 // Print category
-                std::string result = getJSON(wallet, categoryName);
-
-                if (result == "") {
-                    return 1;
+                if (entryCheck) {
+                    throw std::invalid_argument("missing category, item or entry argument(s)");
+                    result = "";
                 }
-
-                std::cout << result;
+                else {
+                    result = getJSON(wallet, categoryName);
+                }
             }
         }
         else {
             // Print wallet
-            std::string result = getJSON(wallet);
-
-            if (result == "") {
-                return 1;
+            if (itemCheck || entryCheck) {
+                throw std::invalid_argument("missing category, item or entry argument(s)");
+                result = "";
             }
+            else {
+                result = getJSON(wallet);
+            }
+        }
 
+        // If successful print result to the console
+        if (result == "") {
+            return 1;
+        }
+        else {
             std::cout << result;
         }
 
@@ -143,41 +153,107 @@ int App::run(int argc, char *argv[]) {
             }
 
             // Update the wallet and save it back to JSON
+            Category& category = wallet.getCategory(categoryName);
+            if (category.empty()) {
+                return 1;
+            }
+
+            Item& item = category.getItem(itemName);
+            if (item.empty()) {
+                return 1;
+            }
+
+            bool result = item.deleteEntry(splitted.first);
+            if (result) {
+                item.addEntry(splitted);
+            }
+            else {
+                return 1;
+            }
+
             wallet.save(db);
         }
         else {
             throw std::invalid_argument("missing category, item or entry argument(s)");
+            return 1;
         }
 
         break;
     }
     
     case Action::DELETE: {
+        bool countCheck = args.count("category") != 0;
+        bool itemCheck = args.count("item") != 0;
+        bool entryCheck = args.count("entry") != 0;
+
+
         // First check if category exists
-        if (args.count("category") != 0) {
+        if (countCheck) {
             std::string categoryName = args["category"].as<std::string>();
 
             // Then chech if item exists
-            if (args.count("item") != 0) {
+            if (itemCheck) {
                 std::string itemName = args["item"].as<std::string>();
 
                 // Entry check as well
-                if (args.count("entry") != 0) {
+                if (entryCheck) {
                     std::string entryName = args["entry"].as<std::string>();
 
                     // Delete selected entry
+                    Category& category = wallet.getCategory(categoryName);
+                    if (category.empty()) {
+                        return 1;
+                    }
+
+                    Item& item = category.getItem(itemName);
+                    if (item.empty()) {
+                        return 1;
+                    }
+
+                    bool result = item.deleteEntry(entryName);
+                    if (!result) {
+                        throw std::invalid_argument("such entry was not found");
+                        return 1;
+                    }
                 }
                 else {
                     // Delete selected item
+                    Category& category = wallet.getCategory(categoryName);
+                    if (category.empty()) {
+                        return 1;
+                    }
+
+                    bool result = category.deleteItem(itemName);
+                    if (!result) {
+                        throw std::invalid_argument("such item was not found");
+                        return 1;
+                    }
                 }
             }
             else {
                 // Delete selected category
+                if (entryCheck) {
+                    throw std::invalid_argument("missing category, item or entry argument(s)");
+                    return 1;
+                }
+                else {
+                    bool result = wallet.deleteCategory(categoryName);
+                    if (!result) {
+                        throw std::invalid_argument("such category was not found");
+                        return 1;
+                    }
+                }
             }
         }
         else {
-            // Delete wallet I guess
+            // Should I delete the wallet?
+            if (itemCheck || entryCheck) {
+                throw std::invalid_argument("missing category, item or entry argument(s)");
+                return 1;
+            }
         }
+
+        wallet.save(db);
 
         break;
     }
