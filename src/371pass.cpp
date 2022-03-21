@@ -32,28 +32,117 @@ int App::run(int argc, char *argv[]) {
     Wallet wallet{};
     wallet.load(db);
 
+    /*if (wallet.empty()) {
+        return 1;
+    }*/
+
     // Just to be sure show the wallet object
     // std::cout << getJSON(wallet);
 
     const Action a = parseActionArgument(args);
     switch (a) {
     case Action::CREATE: {
-        std::string categoryName;
-        std::string itemName;
-        std::string entryName;
-
         bool countCheck = args.count("category") != 0;
         bool itemCheck = args.count("item") != 0;
         bool entryCheck = args.count("entry") != 0;
 
         if (countCheck && itemCheck && entryCheck) {
-            categoryName = args["category"].as<std::string>();
-            itemName = args["item"].as<std::string>();
-            entryName = args["entry"].as<std::string>();
+            std::string categoryName = args["category"].as<std::string>();
+            std::string itemName = args["item"].as<std::string>();
+            std::string entryName = args["entry"].as<std::string>();
             std::pair<std::string, std::string> splitted = stringSplit(entryName, ",");
 
-            // Update the wallet and save it back to JSON
+            if (splitted.first == "" && splitted.second == "") {
+                return 1;
+            }
 
+            // Update the wallet and save it back to JSON
+            wallet.save(db);
+        }
+        else {
+            throw std::invalid_argument("missing category, item or entry argument(s)");
+            return 1;
+        }
+
+        break;
+    }
+        
+    case Action::READ: {
+        // First check if category exists
+        if (args.count("category") != 0) {
+            std::string categoryName = args["category"].as<std::string>();
+
+            // Then chech if item exists
+            if (args.count("item") != 0) {
+                std::string itemName = args["item"].as<std::string>();
+
+                // Entry check as well
+                if (args.count("entry") != 0) {
+                    std::string entryName = args["entry"].as<std::string>();
+
+                    // Print entry
+                    std::string result = getJSON(wallet, categoryName,
+                        itemName, entryName);
+
+                    if (result == "") {
+                        return 1;
+                    }
+
+                    std::cout << result;
+                }
+                else {
+                    // Print item
+                    std::string result = getJSON(wallet, categoryName,
+                        itemName);
+
+                    if (result == "") {
+                        return 1;
+                    }
+
+                    std::cout << result;
+                }
+            }
+            else {
+                // Print category
+                std::string result = getJSON(wallet, categoryName);
+
+                if (result == "") {
+                    return 1;
+                }
+
+                std::cout << result;
+            }
+        }
+        else {
+            // Print wallet
+            std::string result = getJSON(wallet);
+
+            if (result == "") {
+                return 1;
+            }
+
+            std::cout << result;
+        }
+
+        break;
+    }
+        
+    case Action::UPDATE: {
+        bool countCheck = args.count("category") != 0;
+        bool itemCheck = args.count("item") != 0;
+        bool entryCheck = args.count("entry") != 0;
+
+        if (countCheck && itemCheck && entryCheck) {
+            std::string categoryName = args["category"].as<std::string>();
+            std::string itemName = args["item"].as<std::string>();
+            std::string entryName = args["entry"].as<std::string>();
+            std::pair<std::string, std::string> splitted = stringSplit(entryName, ",");
+
+            if (splitted.first == "" && splitted.second == "") {
+                return 1;
+            }
+
+            // Update the wallet and save it back to JSON
             wallet.save(db);
         }
         else {
@@ -62,54 +151,39 @@ int App::run(int argc, char *argv[]) {
 
         break;
     }
-        
-    case Action::READ: {
-        std::string categoryName;
-        std::string itemName;
-        std::string entryName;
-
+    
+    case Action::DELETE: {
         // First check if category exists
         if (args.count("category") != 0) {
-            categoryName = args["category"].as<std::string>();
+            std::string categoryName = args["category"].as<std::string>();
 
             // Then chech if item exists
             if (args.count("item") != 0) {
-                itemName = args["item"].as<std::string>();
+                std::string itemName = args["item"].as<std::string>();
 
                 // Entry check as well
                 if (args.count("entry") != 0) {
-                    entryName = args["entry"].as<std::string>();
+                    std::string entryName = args["entry"].as<std::string>();
 
-                    std::cout << getJSON(wallet, categoryName,
-                        itemName, entryName);
+                    // Delete selected entry
                 }
                 else {
-                    std::cout << getJSON(wallet, categoryName,
-                        itemName);
+                    // Delete selected item
                 }
             }
             else {
-                std::cout << getJSON(wallet, categoryName);
+                // Delete selected category
             }
         }
         else {
-            std::cout << getJSON(wallet);
+            // Delete wallet I guess
         }
 
         break;
     }
-        
-    case Action::UPDATE: {
-        throw std::runtime_error("update not implemented");
-        break;
-    }
-    
-    case Action::DELETE: {
-        throw std::runtime_error("delete not implemented");
-        break;
-    }
+
     default:
-        throw std::invalid_argument("no action was provided");
+        return 1;
     }
     
     return 0;
@@ -187,6 +261,10 @@ std::string App::getJSON(Wallet &wObj) {
 //  JSON representation of a specific Category in a Wallet object.
 std::string App::getJSON(Wallet &wObj, const std::string &c) {
   auto cObj = wObj.getCategory(c);
+  if (cObj.empty()) {
+      return "";
+  }
+
   return cObj.str();
 }
 
@@ -195,7 +273,15 @@ std::string App::getJSON(Wallet &wObj, const std::string &c) {
 std::string App::getJSON(Wallet &wObj, const std::string &c,
                          const std::string &i) {
    auto cObj = wObj.getCategory(c);
+   if (cObj.empty()) {
+       return "";
+   }
+
    const auto iObj = cObj.getItem(i);
+   if (iObj.empty()) {
+       return "";
+   }
+
    return iObj.str();
 }
 
@@ -204,7 +290,15 @@ std::string App::getJSON(Wallet &wObj, const std::string &c,
 std::string App::getJSON(Wallet &wObj, const std::string &c,
                          const std::string &i, const std::string &e) {
    auto cObj = wObj.getCategory(c);
+   if (cObj.empty()) {
+       return "";
+   }
+
    auto iObj = cObj.getItem(i);
+   if (iObj.empty()) {
+       return "";
+   }
+
    return iObj.getEntry(e);
 }
 
@@ -214,8 +308,12 @@ std::pair <std::string, std::string> App::stringSplit(const std::string& string,
     
     unsigned int delPos = string.find(delimiter);
 
-    result.first = string.substr(0, delPos);
-    result.second = string.substr(++delPos, string.size());
+    if (delPos != std::string::npos) {
+        result.first = string.substr(0, delPos);
+        result.second = string.substr(++delPos, string.size());
+        return result;
+    }
 
-    return result;
+    throw std::invalid_argument("entry argumens are not correct");
+    return std::make_pair("","");
 }

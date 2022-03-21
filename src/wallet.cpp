@@ -53,6 +53,7 @@ Category& Wallet::newCategory(const std::string& categoryIdent) {
 	// If not, create an object and return it
 	Category* category = new Category(categoryIdent);
 	categories.push_back(*category);
+	// return *category;
 	return getCategory(categoryIdent);
 }
 
@@ -89,9 +90,10 @@ Category& Wallet::getCategory(const std::string& categoryIdent) {
 		return *it;
 	}
 
-	
-
+	// Throw an error and return an empty category
 	throw std::invalid_argument("category with such a name was not found to get");
+	Category* category = new Category();
+	return *category;
 }
 
 // Function, deleteCategory, that takes one parameter, a Category

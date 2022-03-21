@@ -62,8 +62,9 @@ Item& Category::newItem(const std::string& itemIdent) {
 	}
 
 	// If not, create an object and return it
-	Item item = Item(itemIdent);
-	items.push_back(item);
+	Item* item = new Item(itemIdent);
+	items.push_back(*item);
+	// return *item;
 	return getItem(itemIdent);
 }
 
@@ -98,7 +99,10 @@ Item& Category::getItem(const std::string& itemIdent) {
 		return *it;
 	}
 
+	// Throw an error and return an empty item
 	throw std::invalid_argument("item with such a name was not found to get");
+	Item* item = new Item();
+	return *item;
 }
 
 // Function, deleteItem, that takes one parameter, an Item
