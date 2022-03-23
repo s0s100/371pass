@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <algorithm>
 
 #include "category.h"
 
@@ -100,7 +101,7 @@ Item& Category::getItem(const std::string& itemIdent) {
 	}
 
 	// Throw an error and return an empty item
-	throw std::invalid_argument("item with such a name was not found to get");
+	throw std::out_of_range("item with such a name was not found to get");
 	Item* item = new Item();
 	return *item;
 }
@@ -116,7 +117,7 @@ bool Category::deleteItem(const std::string& itemIdent) {
 		}
 	}
 
-	throw std::invalid_argument("item with such a name was not found to delete");
+	throw std::out_of_range("item with such a name was not found to delete");
 	return false;
 }
 
@@ -167,20 +168,35 @@ bool operator<(const Category& lhs, const Category& rhs) {
 //  std::string of the JSON representation of the data in the Category.
 std::string Category::str() const {
 	std::stringstream ss;
-	ss << "  \"" << getIdent() << "\": {" << std::endl;
 
+	// Nice output
+	//ss << "  \"" << getIdent() << "\": {" << std::endl;
+
+	//unsigned int i = 1;
+	//for (Item item : items) {
+	//	ss << item.str();
+
+	//	if (i++ != items.size()) {
+	//		ss << ",";
+	//	}
+
+	//	ss << std::endl;
+	//}
+
+	//ss << "  }";
+
+	// Required output
+	ss << "{";
 	unsigned int i = 1;
 	for (Item item : items) {
+		ss << "\"" << item.getIdent() << "\":";
 		ss << item.str();
 
 		if (i++ != items.size()) {
 			ss << ",";
 		}
-
-		ss << std::endl;
 	}
-
-	ss << "  }";
+	ss << "}";
 
 	return ss.str();
 }

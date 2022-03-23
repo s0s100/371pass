@@ -8,6 +8,7 @@
 // -----------------------------------------------------
 
 #include <sstream>
+#include <algorithm>
 
 #include "item.h"
 
@@ -72,7 +73,7 @@ bool Item::addEntry(const std::pair<std::string, std::string>& newEntry) {
 std::string Item::getEntry(const std::string& key) const {
 	auto it = data.find(key);
 	if (it == data.end()) {
-		throw std::invalid_argument("no such a key in the map");
+		throw std::out_of_range("no such a key in the map");
 		return "";
 	}
 
@@ -147,20 +148,32 @@ bool operator<(const Item& lhs, const Item& rhs) {
 //  std::string of the JSON representation of the data in the Item.
 std::string Item::str() const {
 	std::stringstream ss;
-	ss << "    \"" << getIdent() <<  "\":  {" << std::endl;
+	// Nice outtput
+	//ss << "    \"" << getIdent() <<  "\":  {" << std::endl;
 
-	// Comma at the end of each line
+	//unsigned int i = 1;
+	//for (auto& it : data) {
+	//	ss << "      \"" << it.first << "\":  \""
+	//		<< it.second << "\"";
+	//	if (i++ != data.size()) {
+	//		ss << ",";
+	//	}
+	//	ss << std::endl;
+	//}
+
+	//ss << "    }";
+
+	// Required output	
+	ss << "{";
 	unsigned int i = 1;
 	for (auto& it : data) {
-		ss << "      \"" << it.first << "\":  \""
+		ss << "\"" << it.first << "\":\""
 			<< it.second << "\"";
 		if (i++ != data.size()) {
 			ss << ",";
 		}
-		ss << std::endl;
 	}
-
-	ss << "    }";
+	ss << "}";
 
 	return ss.str();
 }

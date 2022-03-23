@@ -11,6 +11,7 @@
 #include <fstream>
 #include <sstream>
 #include <iomanip>
+#include <algorithm>
 
 #include "wallet.h"
 #include "lib_json.hpp"
@@ -91,7 +92,7 @@ Category& Wallet::getCategory(const std::string& categoryIdent) {
 	}
 
 	// Throw an error and return an empty category
-	throw std::invalid_argument("category with such a name was not found to get");
+	throw std::out_of_range("category with such a name was not found to get");
 	Category* category = new Category();
 	return *category;
 }
@@ -107,7 +108,7 @@ bool Wallet::deleteCategory(const std::string& categoryIdent ) {
 		}
 	}
 
-	throw std::invalid_argument("category with such a name was not found to delete");
+	throw std::out_of_range("category with such a name was not found to delete");
 	return false;
 }
 
@@ -186,7 +187,9 @@ bool operator==(const Wallet& lhs, const Wallet& rhs) {
 //  std::string of the JSON representation of the data in the Wallet.
 std::string Wallet::str() const {
 	std::stringstream ss;
-	ss << "{" << std::endl;
+
+	// Nice output
+	/*ss << "{" << std::endl;
 
 	unsigned int i = 1;
 	for (Category category : categories) {
@@ -199,7 +202,23 @@ std::string Wallet::str() const {
 		ss << std::endl;
 	}
 
-	ss << "}" << std::endl;
+	ss << "}" << std::endl;*/
+
+	// Required output
+	ss << "{";
+
+	unsigned int i = 1;
+	for (Category category : categories) {
+		ss << "\"" << category.getIdent() << "\":";
+
+		ss << category.str();
+
+		if (i++ != categories.size()) {
+			ss << ",";
+		}
+	}
+
+	ss << "}";
 
 	return ss.str();
 }

@@ -34,6 +34,11 @@ namespace App {
 
     int run(int argc, char *argv[]);
 
+    int createAction(Wallet& wallet, cxxopts::ParseResult& args, const std::string& db);
+    int readAction(Wallet& wallet, cxxopts::ParseResult& args, const std::string& db);
+    int updateAction(Wallet& wallet, cxxopts::ParseResult& args, const std::string& db);
+    int deleteAction(Wallet& wallet, cxxopts::ParseResult& args, const std::string& db);
+
     cxxopts::Options cxxoptsSetup();
 
     App::Action parseActionArgument(cxxopts::ParseResult &args);
